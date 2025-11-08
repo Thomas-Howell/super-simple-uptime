@@ -1,23 +1,16 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { eq, and, isNull, lte } from "drizzle-orm";
 import {
   pgTable,
   text,
   timestamp,
   primaryKey,
-  index,
-  pgEnum,
   boolean,
-  bigint,
-  integer,
-  serial,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
 
 // Database connection \\
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({ connectionString: process.env["DATABASE_URL"] });
 export const database = drizzle(pool);
 
 // Database schema \\

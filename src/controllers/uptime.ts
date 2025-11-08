@@ -1,6 +1,6 @@
-import { Router } from "express";
-import type { Request, Response } from "express";
-import { uptimeService } from "../services/uptimeService";
+import { Router, type Request, type Response } from "express";
+
+import { uptimeService } from "@src/services/uptime.js";
 
 export const uptimeController = Router();
 

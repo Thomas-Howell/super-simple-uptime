@@ -1,7 +1,7 @@
-import { database } from "../database.js";
-import { databaseSchema } from "../database.js";
-import { eq, and } from "drizzle-orm";
-import { uptimeService } from "./uptimeService.js";
+import { eq } from "drizzle-orm";
+
+import { database, databaseSchema } from "@src/database.js";
+import { uptimeService } from "@src/services/uptime.js";
 
 export interface MonitorResult {
   domain: string;

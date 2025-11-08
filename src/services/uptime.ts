@@ -1,5 +1,6 @@
-import { database, databaseSchema } from "../database";
 import { eq, asc } from "drizzle-orm";
+
+import { database, databaseSchema } from "@src/database.js";
 
 export class UptimeService {
   async logUptime(domain: string, isUp: boolean) {

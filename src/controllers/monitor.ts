@@ -1,8 +1,7 @@
-import { Router } from "express";
-import type { Request, Response } from "express";
-import { monitorService } from "../services/monitorService";
+import express, { Router, type Request, type Response } from "express";
 import multer from "multer";
-import express from "express";
+
+import { monitorService } from "@src/services/monitor.js";
 
 export const monitorController = Router();
 
@@ -20,20 +19,21 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 // Monitor endpoints
 monitorController.get("/", async (req: Request, res: Response) => {
-  res.json(await monitorService.checkAll());
+  if (req) return res.json(await monitorService.checkAll());
+  else return res.status(400).json({ error: "Bad request" });
 });
 
 monitorController.get("/:domain", async (req: Request, res: Response) => {
   const { domain } = req.params;
   const result = await monitorService.retrieve(domain);
-  res.json(result);
+  return res.json(result);
 });
 
 monitorController.post("/", async (req: Request, res: Response) => {
   const { domain } = req.body as { domain?: string };
   if (!domain) return res.status(400).json({ error: "domain required" });
   await monitorService.create(domain);
-  res.status(201).json({ domain });
+  return res.status(201).json({ domain });
 });
 
 // Import monitors from a .txt file (newline-separated domains), CSV, or JSON array
@@ -88,10 +88,10 @@ monitorController.post(
           reason: (x.r as PromiseRejectedResult).reason,
         }));
 
-      res.status(201).json({ imported: created, failed });
+      return res.status(201).json({ imported: created, failed });
     } catch (err) {
       console.error("Import error:", err);
-      res.status(500).json({ error: "internal error" });
+      return res.status(500).json({ error: "internal error" });
     }
   }
 );
@@ -129,10 +129,10 @@ monitorController.post(
           reason: (x.r as PromiseRejectedResult).reason,
         }));
 
-      res.status(201).json({ imported: created, failed });
+      return res.status(201).json({ imported: created, failed });
     } catch (err) {
       console.error("File import error:", err);
-      res.status(500).json({ error: "internal error" });
+      return res.status(500).json({ error: "internal error" });
     }
   }
 );
@@ -142,11 +142,11 @@ monitorController.put("/:domain", async (req: Request, res: Response) => {
   const { domain: newDomain } = req.body as { domain?: string };
   if (!newDomain) return res.status(400).json({ error: "new domain required" });
   await monitorService.update(domain, newDomain);
-  res.json({ domain: newDomain });
+  return res.json({ domain: newDomain });
 });
 
 monitorController.delete("/:domain", async (req: Request, res: Response) => {
   const { domain } = req.params;
   await monitorService.delete(domain);
-  res.status(204).send();
+  return res.status(204).send();
 });

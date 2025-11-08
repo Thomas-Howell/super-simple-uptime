@@ -5,7 +5,7 @@ export default defineConfig({
   schema: "./src/database.ts",
   out: "./drizzle",
   dbCredentials: {
-    url: "postgres://devuser:devpass@localhost:5434/devdb",
+    url: process.env["DATABASE_URL"] as string,
   },
   verbose: true,
   strict: true,
