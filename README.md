@@ -4,6 +4,8 @@ A super simple uptime service, with just two database tables and six Typescript 
 
 Provides a very simple API to CRUD monitors and extract uptime data.
 
+Limited to public websites with no authentication needed. Designed for the purpose of monitoring Wordpress websites.
+
 ## Layout
 
 ```
@@ -14,7 +16,7 @@ src
 -/ services
 --/ monitorService.ts (handles monitor CRUD)
 --/ uptimeService.ts (handles uptime)
--/ database.ts
+-/ database.ts (includes schema and client)
 -/ server.ts
 ```
 

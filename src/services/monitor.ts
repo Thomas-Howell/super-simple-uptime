@@ -9,6 +9,21 @@ export interface MonitorResult {
 }
 
 export class MonitorService {
+  async startMonitoring() {
+    this.checkAll().catch((error) => {
+      console.error("Error during initial checkAll:", error);
+    });
+
+    setInterval(
+      () => {
+        this.checkAll().catch((error) => {
+          console.error("Error during periodic checkAll:", error);
+        });
+      },
+      Number(process.env["UPTIME_INTERVAL_MINUTES"]) * 60 * 1000
+    );
+  }
+
   async checkAll() {
     const monitors = await database.select().from(databaseSchema.monitors);
     const results: MonitorResult[] = await Promise.all(
@@ -19,13 +34,33 @@ export class MonitorService {
 
   async checkOnline(domain: string): Promise<MonitorResult> {
     try {
-      const response = await fetch(`https://${domain}`);
-      await uptimeService.logUptime(domain, response.ok);
-      return { domain, isUp: response.ok };
+      const request: Request = new Request(`https://${domain}`, {
+        method: "GET",
+        redirect: "follow",
+        cache: "no-store",
+        credentials: "omit",
+        headers: {
+          "User-Agent": "SuperSimpleUptime/1.0",
+        },
+        mode: "cors",
+        keepalive: false,
+        referrer: "",
+      });
+
+      const response = await fetch(request);
+      const isUp = this.parseResponse(response);
+      await uptimeService.logUptime(domain, isUp);
+      return { domain, isUp };
     } catch {
       await uptimeService.logUptime(domain, false);
       return { domain, isUp: false };
     }
+  }
+
+  private parseResponse(response: Response): boolean {
+    if (response.ok) {
+      return true;
+    } else return false;
   }
 
   async create(domain: string) {

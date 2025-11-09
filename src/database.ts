@@ -22,7 +22,9 @@ export const monitors = pgTable("monitors", {
 export const checks = pgTable(
   "checks",
   {
-    domain: text("domain").references(() => monitors.domain),
+    domain: text("domain").references(() => monitors.domain, {
+      onDelete: "cascade",
+    }),
     checkedAt: timestamp("checked_at").defaultNow(),
     isUp: boolean("is_up").notNull(),
   },
