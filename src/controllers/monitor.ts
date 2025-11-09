@@ -5,15 +5,6 @@ import { monitorService } from "@src/services/monitor.js";
 
 export const monitorController = Router();
 
-// helper to normalize domain input: convert commas to newlines, strip quotes, split and trim
-const normalizeDomains = (s: string) =>
-  s
-    .replace(/,/g, "\n")
-    .replace(/['"]/g, "")
-    .split(/\r?\n/)
-    .map((d) => d.trim())
-    .filter(Boolean);
-
 // multer for file uploads (keep files in memory)
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -150,3 +141,12 @@ monitorController.delete("/:domain", async (req: Request, res: Response) => {
   await monitorService.delete(domain);
   return res.status(204).send();
 });
+
+// helper to normalize domain input: convert commas to newlines, strip quotes, split and trim
+const normalizeDomains = (s: string) =>
+  s
+    .replace(/,/g, "\n")
+    .replace(/['"]/g, "")
+    .split(/\r?\n/)
+    .map((d) => d.trim())
+    .filter(Boolean);
