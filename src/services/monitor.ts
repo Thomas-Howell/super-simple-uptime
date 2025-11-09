@@ -1,12 +1,15 @@
 import { eq } from "drizzle-orm";
+import type { InferSelectModel } from "drizzle-orm";
 
 import { database, databaseSchema } from "@src/database.js";
 import { uptimeService } from "@src/services/uptime.js";
 
-export interface MonitorResult {
+export type Monitor = InferSelectModel<typeof databaseSchema.monitors>;
+
+export type MonitorResult = {
   domain: string;
   isUp: boolean;
-}
+};
 
 export class MonitorService {
   async startMonitoring() {
@@ -63,27 +66,41 @@ export class MonitorService {
     } else return false;
   }
 
-  async create(domain: string) {
-    await database.insert(databaseSchema.monitors).values({
-      domain,
-    });
+  async create(domain: string): Promise<Monitor> {
+    return (
+      await database
+        .insert(databaseSchema.monitors)
+        .values({
+          domain,
+        })
+        .returning()
+    )[0];
   }
 
-  async retrieve(domain: string) {
-    return await database
-      .select()
-      .from(databaseSchema.monitors)
-      .where(eq(databaseSchema.monitors.domain, domain));
+  async retrieve(domain: string): Promise<Monitor | undefined> {
+    return (
+      await database
+        .select()
+        .from(databaseSchema.monitors)
+        .where(eq(databaseSchema.monitors.domain, domain))
+        .limit(1)
+    )[0];
   }
 
-  async update(domain: string, newDomain: string) {
-    await database
-      .update(databaseSchema.monitors)
-      .set({ domain: newDomain })
-      .where(eq(databaseSchema.monitors.domain, domain));
+  async update(
+    domain: string,
+    newDomain: string
+  ): Promise<Monitor | undefined> {
+    return (
+      await database
+        .update(databaseSchema.monitors)
+        .set({ domain: newDomain })
+        .where(eq(databaseSchema.monitors.domain, domain))
+        .returning()
+    )[0];
   }
 
-  async delete(domain: string) {
+  async delete(domain: string): Promise<void> {
     await database
       .delete(databaseSchema.monitors)
       .where(eq(databaseSchema.monitors.domain, domain));
