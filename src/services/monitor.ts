@@ -1,15 +1,20 @@
 import { eq } from "drizzle-orm";
-import type { InferSelectModel } from "drizzle-orm";
-
 import { database, databaseSchema } from "@src/database.js";
 import { uptimeService } from "@src/services/uptime.js";
+import { alertsService } from "@src/services/alerts.js";
+import type { Monitor, MonitorResult } from "@src/types/monitor.js";
 
-export type Monitor = InferSelectModel<typeof databaseSchema.monitors>;
+export interface EmailService {
+  sendEmail(to: string, subject: string, text: string): Promise<void>;
+}
 
-export type MonitorResult = {
-  domain: string;
-  isUp: boolean;
-};
+export interface SMSService {
+  sendSMS(to: string, message: string): Promise<void>;
+}
+
+export interface WebhookService {
+  sendWebhook(url: string, payload: object): Promise<void>;
+}
 
 export class MonitorService {
   async startMonitoring() {
@@ -30,9 +35,19 @@ export class MonitorService {
   async checkAll() {
     const monitors = await database.select().from(databaseSchema.monitors);
     const results: MonitorResult[] = await Promise.all(
-      monitors.map((monitor) => this.checkOnline(monitor.domain))
+      monitors.map((monitor) => this.handleMonitorCheck(monitor.domain))
     );
     return results;
+  }
+
+  async handleMonitorCheck(domain: string) {
+    const check = await this.checkOnline(domain);
+    if (check.isUp === false) {
+      alertsService.handleAlert(domain).catch((error) => {
+        console.error(`Error handling alert for domain ${domain}:`, error);
+      });
+    }
+    return check;
   }
 
   async checkOnline(domain: string): Promise<MonitorResult> {

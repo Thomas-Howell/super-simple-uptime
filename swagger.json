@@ -1,0 +1,655 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"MonitorDto": {
+				"properties": {
+					"domain": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"domain"
+				],
+				"type": "object",
+				"additionalProperties": true
+			},
+			"Express.Multer.File": {
+				"description": "Object containing file metadata and access information.",
+				"properties": {
+					"fieldname": {
+						"type": "string",
+						"description": "Name of the form field associated with this file."
+					},
+					"originalname": {
+						"type": "string",
+						"description": "Name of the file on the uploader's computer."
+					},
+					"encoding": {
+						"type": "string",
+						"description": "Value of the `Content-Transfer-Encoding` header for this file.",
+						"deprecated": true
+					},
+					"mimetype": {
+						"type": "string",
+						"description": "Value of the `Content-Type` header for this file."
+					},
+					"size": {
+						"type": "number",
+						"format": "double",
+						"description": "Size of the file in bytes."
+					},
+					"stream": {
+						"type": "string",
+						"format": "byte",
+						"description": "A readable stream of this file. Only available to the `_handleFile`\ncallback for custom `StorageEngine`s."
+					},
+					"destination": {
+						"type": "string",
+						"description": "`DiskStorage` only: Directory to which this file has been uploaded."
+					},
+					"filename": {
+						"type": "string",
+						"description": "`DiskStorage` only: Name of this file within `destination`."
+					},
+					"path": {
+						"type": "string",
+						"description": "`DiskStorage` only: Full path to the uploaded file."
+					},
+					"buffer": {
+						"type": "string",
+						"format": "byte",
+						"description": "`MemoryStorage` only: A Buffer containing the entire file."
+					}
+				},
+				"required": [
+					"fieldname",
+					"originalname",
+					"encoding",
+					"mimetype",
+					"size",
+					"stream",
+					"destination",
+					"filename",
+					"path",
+					"buffer"
+				],
+				"type": "object",
+				"additionalProperties": true
+			},
+			"AlertDtoTypeType": {
+				"type": "string",
+				"enum": [
+					"EMAIL",
+					"SMS",
+					"WEBHOOK"
+				]
+			},
+			"AlertDto": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"domain": {
+						"type": "string",
+						"nullable": true
+					},
+					"type": {
+						"$ref": "#/components/schemas/AlertDtoTypeType"
+					}
+				},
+				"required": [
+					"id",
+					"domain",
+					"type"
+				],
+				"type": "object",
+				"additionalProperties": true
+			}
+		},
+		"securitySchemes": {}
+	},
+	"info": {
+		"title": "super-simple-uptime",
+		"version": "0.2.0",
+		"license": {
+			"name": "MIT"
+		},
+		"contact": {
+			"name": "Thomas Howell"
+		}
+	},
+	"paths": {
+		"/uptime/{domain}/raw": {
+			"get": {
+				"operationId": "GetRawUptime",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {},
+									"type": "array"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Uptime"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "domain",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/uptime/{domain}": {
+			"get": {
+				"operationId": "GetUptime",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Uptime"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "domain",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"delete": {
+				"operationId": "DeleteUptime",
+				"responses": {
+					"204": {
+						"description": "No Content"
+					}
+				},
+				"tags": [
+					"Uptime"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "domain",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/monitors/{domain}": {
+			"get": {
+				"operationId": "GetAllMonitors",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MonitorDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Monitors"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "domain",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"patch": {
+				"operationId": "UpdateMonitor",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MonitorDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Monitors"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "domain",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"domain": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"domain"
+								],
+								"type": "object"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "DeleteMonitor",
+				"responses": {
+					"204": {
+						"description": "No Content"
+					}
+				},
+				"tags": [
+					"Monitors"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "domain",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/monitors": {
+			"post": {
+				"operationId": "CreateMonitor",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MonitorDto"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Monitors"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/MonitorDto"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/monitors/import": {
+			"post": {
+				"operationId": "ImportMonitors",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"failed": {
+											"items": {
+												"properties": {
+													"reason": {},
+													"domain": {
+														"type": "string"
+													}
+												},
+												"required": [
+													"reason",
+													"domain"
+												],
+												"type": "object"
+											},
+											"type": "array"
+										},
+										"imported": {
+											"type": "number",
+											"format": "double"
+										}
+									},
+									"required": [
+										"failed",
+										"imported"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Monitors"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {}
+						}
+					}
+				}
+			}
+		},
+		"/monitors/import/file": {
+			"post": {
+				"operationId": "ImportMonitorsFromFile",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"failed": {
+											"items": {
+												"properties": {
+													"reason": {},
+													"domain": {
+														"type": "string"
+													}
+												},
+												"required": [
+													"reason",
+													"domain"
+												],
+												"type": "object"
+											},
+											"type": "array"
+										},
+										"imported": {
+											"type": "number",
+											"format": "double"
+										}
+									},
+									"required": [
+										"failed",
+										"imported"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Monitors"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Express.Multer.File"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/alerts": {
+			"post": {
+				"operationId": "Create",
+				"responses": {
+					"201": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Alerts"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"target": {
+										"type": "string"
+									},
+									"type": {
+										"type": "string",
+										"enum": [
+											"EMAIL",
+											"SMS",
+											"WEBHOOK"
+										]
+									},
+									"domain": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"target",
+									"type",
+									"domain"
+								],
+								"type": "object"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/alerts/{domain}": {
+			"get": {
+				"operationId": "GetByDomain",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"items": {
+										"$ref": "#/components/schemas/AlertDto"
+									},
+									"type": "array",
+									"nullable": true
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Alerts"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "domain",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/alerts/id/{id}": {
+			"get": {
+				"operationId": "GetById",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"allOf": [
+										{
+											"$ref": "#/components/schemas/AlertDto"
+										}
+									],
+									"nullable": true
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Alerts"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/alerts/{id}": {
+			"patch": {
+				"operationId": "Update",
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"tags": [
+					"Alerts"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"target": {
+										"type": "string"
+									},
+									"domain": {
+										"type": "string"
+									},
+									"type": {
+										"type": "string",
+										"enum": [
+											"EMAIL",
+											"SMS",
+											"WEBHOOK"
+										]
+									}
+								},
+								"required": [
+									"target"
+								],
+								"type": "object"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"204": {
+						"description": ""
+					}
+				},
+				"tags": [
+					"Alerts"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}

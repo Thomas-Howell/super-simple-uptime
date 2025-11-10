@@ -1,24 +1,23 @@
-import { Router, type Request, type Response } from "express";
+import { Get, Route, SuccessResponse, Tags, Path, Delete } from "@tsoa/runtime";
 
 import { uptimeService } from "@src/services/uptime.js";
 
-export const uptimeController = Router();
+@Tags("Uptime")
+@Route("uptime")
+export class UptimeControler {
+  @Get("/:domain/raw")
+  public async getRawUptime(@Path("domain") domain: string): Promise<any[]> {
+    return uptimeService.retrieve(domain);
+  }
 
-// Uptime endpoints
-uptimeController.get("/:domain/raw", async (req: Request, res: Response) => {
-  const { domain } = req.params;
-  const rows = await uptimeService.retrieve(domain);
-  res.json(rows);
-});
+  @Get("/:domain")
+  public async getUptime(@Path("domain") domain: string) {
+    return uptimeService.retrieveUptime(domain);
+  }
 
-uptimeController.get("/:domain", async (req: Request, res: Response) => {
-  const { domain } = req.params;
-  const result = await uptimeService.retrieveUptime(domain);
-  res.json(result);
-});
-
-uptimeController.delete("/:domain", async (req: Request, res: Response) => {
-  const { domain } = req.params;
-  await uptimeService.delete(domain);
-  res.status(204).send();
-});
+  @Delete("/:domain")
+  @SuccessResponse("204", "No Content")
+  public async deleteUptime(@Path("domain") domain: string): Promise<void> {
+    await uptimeService.delete(domain);
+  }
+}

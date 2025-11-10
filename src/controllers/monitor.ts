@@ -1,152 +1,123 @@
-import express, { Router, type Request, type Response } from "express";
-import multer from "multer";
+import {
+  Get,
+  Patch,
+  Route,
+  SuccessResponse,
+  Post,
+  Body,
+  Tags,
+  Path,
+  Delete,
+} from "@tsoa/runtime";
 
 import { monitorService } from "@src/services/monitor.js";
+import type { MonitorDto } from "./dtos/monitor.js";
 
-export const monitorController = Router();
-
-// multer for file uploads (keep files in memory)
-const upload = multer({ storage: multer.memoryStorage() });
-
-// Monitor endpoints
-monitorController.get("/", async (req: Request, res: Response) => {
-  if (req) return res.json(await monitorService.checkAll());
-  else return res.status(400).json({ error: "Bad request" });
-});
-
-monitorController.get("/:domain", async (req: Request, res: Response) => {
-  const { domain } = req.params;
-  const result = await monitorService.retrieve(domain);
-  return res.json(result);
-});
-
-monitorController.post("/", async (req: Request, res: Response) => {
-  const { domain } = req.body as { domain?: string };
-  if (!domain) return res.status(400).json({ error: "domain required" });
-  await monitorService.create(domain);
-  return res.status(201).json({ domain });
-});
-
-// Import monitors from a .txt file (newline-separated domains), CSV, or JSON array
-// Accepts:
-// - text/plain body containing newline-separated domains or comma-separated domains (a .txt upload)
-// - application/json with either an array (['a.com','b.com']) or { domains: 'a.com,b.com' } or { domains: ['a.com','b.com'] }
-monitorController.post(
-  "/import",
-  // parse text/plain body for raw .txt uploads
-  express.text({ type: "text/plain" }),
-  async (req: Request, res: Response) => {
-    try {
-      let domains: string[] = [];
-
-      if (req.is("text/plain") && typeof req.body === "string") {
-        domains = normalizeDomains(req.body);
-      } else if (req.is("application/json")) {
-        const body = req.body as any;
-        if (Array.isArray(body)) {
-          // join array elements with newline then parse to handle commas/quotes inside elements
-          domains = normalizeDomains(body.map(String).join("\n"));
-        } else if (Array.isArray(body?.domains)) {
-          domains = normalizeDomains(body.domains.map(String).join("\n"));
-        } else if (typeof body?.domains === "string") {
-          domains = normalizeDomains(body.domains);
-        } else if (typeof body === "string") {
-          domains = normalizeDomains(body);
-        }
-      } else if (typeof req.body === "string") {
-        // fallback
-        domains = normalizeDomains(req.body);
-      }
-
-      if (!domains.length)
-        return res.status(400).json({ error: "no domains found" });
-
-      // Deduplicate and validate simple domain format
-      domains = Array.from(new Set(domains.map((d) => d.trim()))).filter(
-        Boolean
-      );
-
-      const results = await Promise.allSettled(
-        domains.map((d) => monitorService.create(d))
-      );
-
-      const created = results.filter((r) => r.status === "fulfilled").length;
-      const failed = results
-        .map((r, i) => ({ r, domain: domains[i] }))
-        .filter((x) => x.r.status === "rejected")
-        .map((x) => ({
-          domain: x.domain,
-          reason: (x.r as PromiseRejectedResult).reason,
-        }));
-
-      return res.status(201).json({ imported: created, failed });
-    } catch (err) {
-      console.error("Import error:", err);
-      return res.status(500).json({ error: "internal error" });
-    }
+@Tags("Monitors")
+@Route("monitors")
+export class MonitorController {
+  @Get("/:domain")
+  public async getAllMonitors(
+    @Path("domain") domain: string
+  ): Promise<MonitorDto | undefined> {
+    return monitorService.retrieve(domain);
   }
-);
 
-// File upload endpoint: accepts multipart/form-data with a `file` field (a .txt file)
-monitorController.post(
-  "/import/file",
-  upload.single("file"),
-  async (req: Request, res: Response) => {
-    try {
-      // @ts-ignore - multer adds file to Request
-      const file = (req as any).file;
-      if (!file) return res.status(400).json({ error: "file required" });
-
-      const text = file.buffer.toString("utf8");
-      let domains = normalizeDomains(text);
-
-      if (!domains.length)
-        return res.status(400).json({ error: "no domains found in file" });
-
-      domains = Array.from(new Set(domains.map((d) => d.trim()))).filter(
-        Boolean
-      );
-
-      const results = await Promise.allSettled(
-        domains.map((d) => monitorService.create(d))
-      );
-
-      const created = results.filter((r) => r.status === "fulfilled").length;
-      const failed = results
-        .map((r, i) => ({ r, domain: domains[i] }))
-        .filter((x) => x.r.status === "rejected")
-        .map((x) => ({
-          domain: x.domain,
-          reason: (x.r as PromiseRejectedResult).reason,
-        }));
-
-      return res.status(201).json({ imported: created, failed });
-    } catch (err) {
-      console.error("File import error:", err);
-      return res.status(500).json({ error: "internal error" });
-    }
+  @Post("/")
+  public async createMonitor(@Body() monitor: MonitorDto): Promise<MonitorDto> {
+    return monitorService.create(monitor.domain);
   }
-);
 
-monitorController.put("/:domain", async (req: Request, res: Response) => {
-  const { domain } = req.params;
-  const { domain: newDomain } = req.body as { domain?: string };
-  if (!newDomain) return res.status(400).json({ error: "new domain required" });
-  await monitorService.update(domain, newDomain);
-  return res.json({ domain: newDomain });
-});
+  @Post("/import")
+  public async importMonitors(
+    @Body() body: any
+  ): Promise<{ imported: number; failed: { domain: string; reason: any }[] }> {
+    let domains: string[] = [];
 
-monitorController.delete("/:domain", async (req: Request, res: Response) => {
-  const { domain } = req.params;
-  await monitorService.delete(domain);
-  return res.status(204).send();
-});
+    if (Array.isArray(body)) {
+      // join array elements with newline then parse to handle commas/quotes inside elements
+      domains = this.normalizeDomains(body.map(String).join("\n"));
+    } else if (Array.isArray(body?.domains)) {
+      domains = this.normalizeDomains(body.domains.map(String).join("\n"));
+    } else if (typeof body?.domains === "string") {
+      domains = this.normalizeDomains(body.domains);
+    } else if (typeof body === "string") {
+      domains = this.normalizeDomains(body);
+    }
 
-// helper to normalize domain input: convert commas to newlines, strip quotes, split and trim
-const normalizeDomains = (s: string) =>
-  s
-    .replace(/,/g, "\n")
-    .replace(/['"]/g, "")
-    .split(/\r?\n/)
-    .map((d) => d.trim())
-    .filter(Boolean);
+    if (!domains.length) throw new Error("no domains found");
+
+    // Deduplicate and validate simple domain format
+    domains = Array.from(new Set(domains.map((d) => d.trim()))).filter(Boolean);
+
+    const results = await Promise.allSettled(
+      domains.map((d) => monitorService.create(d))
+    );
+
+    const created = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results
+      .map((r, i) => ({ r, domain: domains[i] }))
+      .filter((x) => x.r.status === "rejected")
+      .map((x) => ({
+        domain: x.domain,
+        reason: (x.r as PromiseRejectedResult).reason,
+      }));
+
+    return { imported: created, failed };
+  }
+
+  @Post("/import/file")
+  public async importMonitorsFromFile(
+    @Body() file: Express.Multer.File
+  ): Promise<{ imported: number; failed: { domain: string; reason: any }[] }> {
+    if (!file) throw new Error("file required");
+
+    const text = file.buffer.toString("utf8");
+    let domains = this.normalizeDomains(text);
+
+    if (!domains.length) throw new Error("no domains found in file");
+
+    domains = Array.from(new Set(domains.map((d) => d.trim()))).filter(Boolean);
+
+    const results = await Promise.allSettled(
+      domains.map((d) => monitorService.create(d))
+    );
+
+    const created = results.filter((r) => r.status === "fulfilled").length;
+    const failed = results
+      .map((r, i) => ({ r, domain: domains[i] }))
+      .filter((x) => x.r.status === "rejected")
+      .map((x) => ({
+        domain: x.domain,
+        reason: (x.r as PromiseRejectedResult).reason,
+      }));
+
+    return { imported: created, failed };
+  }
+
+  @Patch("/:domain")
+  public async updateMonitor(
+    @Path("domain") domain: string,
+    @Body() body: { domain: string }
+  ): Promise<MonitorDto | undefined> {
+    const { domain: newDomain } = body;
+    return monitorService.update(domain, newDomain);
+  }
+
+  @SuccessResponse("204", "No Content")
+  @Delete("/:domain")
+  public async deleteMonitor(@Path("domain") domain: string): Promise<void> {
+    await monitorService.delete(domain);
+  }
+
+  // helper to normalize domain input: convert commas to newlines, strip quotes, split and trim
+  private normalizeDomains = (s: string) =>
+    s
+      .replace(/,/g, "\n")
+      .replace(/['"]/g, "")
+      .split(/\r?\n/)
+      .map((d) => d.trim())
+      .filter(Boolean);
+}
+
+export const monitorController = new MonitorController();
