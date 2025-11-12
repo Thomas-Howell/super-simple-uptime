@@ -9,7 +9,7 @@ import type {
 
 import { eq, and } from "drizzle-orm";
 
-import { config } from "@src/app.js";
+import { config } from "@src/config.js";
 import { database, databaseSchema } from "@src/database.js";
 
 import { sendGridService } from "./sendgrid.js";

@@ -8,9 +8,8 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "node scripts/createDtos.js && tsoa spec-and-routes && node scripts/fixImportExtensions.js && tsx watch src/app.ts",
-    "prod": "node scripts/createDtos.js && tsoa spec-and-routes && node scripts/fixImportExtensions.js && tsc -p tsconfig.json && tsc-alias -p tsconfig.json && node dist/app.js",
     "build": "node scripts/createDtos.js && tsoa spec-and-routes && node scripts/fixImportExtensions.js && tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
-    "start": "node scripts/createDtos.js && tsoa spec-and-routes && node scripts/fixImportExtensions.js && node dist/app.js"
+    "start": "node dist/app.js"
   },
   "_moduleAliases": {
     "@src": "dist"

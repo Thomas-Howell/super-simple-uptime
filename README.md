@@ -8,7 +8,8 @@ Limited to public websites with no authentication needed. Designed for the purpo
 
 ## Todo:
 - [ ] Database pruning, condensing old uptime data
-
+- [ ] Dockerise
+ 
 ## Layout
 
 ```

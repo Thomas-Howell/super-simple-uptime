@@ -1,11 +1,14 @@
 import sgMail from "@sendgrid/mail";
 import type { EmailService } from "@src/services/monitor.js";
+import { config } from "@src/config.js";
 
 export class SendGridService implements EmailService {
   private sgMail = sgMail;
 
   constructor(apiKey: string) {
-    this.sgMail.setApiKey(apiKey);
+    if (config.emailEnabled) {
+      this.sgMail.setApiKey(apiKey);
+    }
   }
 
   async sendEmail(to: string, subject: string, text: string) {

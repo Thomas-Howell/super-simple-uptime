@@ -27,3 +27,5 @@ export class Config {
     } else this.emailEnabled = false;
   }
 }
+
+export const config = new Config();

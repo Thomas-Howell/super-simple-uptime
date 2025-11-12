@@ -15,6 +15,13 @@
       "when": 1762683191647,
       "tag": "0001_curly_masque",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762910448325,
+      "tag": "0002_solid_microbe",
+      "breakpoints": true
     }
   ]
 }
