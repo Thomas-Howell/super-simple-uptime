@@ -9,13 +9,15 @@ import type {
 
 import { eq, and } from "drizzle-orm";
 
-import { config } from "@src/config.js";
+import { createConfig } from "@src/config.js";
 import { database, databaseSchema } from "@src/database.js";
 
 import { sendGridService } from "./sendgrid.js";
 import { twilioService } from "./twilio.js";
 
 export class AlertsService {
+  private config = createConfig();
+
   async handleAlert(domain: string): Promise<HandleAlertResponse> {
     const alerts = await this.retrieveManyByDomain(domain);
 
@@ -168,7 +170,7 @@ export class AlertsService {
   }
 
   private async sendEmailAlert(domain: string, email: string): Promise<void> {
-    if (config.emailEnabled) {
+    if (this.config.emailEnabled) {
       sendGridService
         .sendEmail(
           email,
@@ -185,7 +187,7 @@ export class AlertsService {
     domain: string,
     phoneNumber: string
   ): Promise<void> {
-    if (config.smsEnabled) {
+    if (this.config.smsEnabled) {
       twilioService
         .sendSMS(phoneNumber, `Alert: Your monitored domain ${domain} is down`)
         .catch((error) => {

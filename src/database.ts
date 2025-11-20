@@ -11,7 +11,22 @@ import {
 
 // Database connection \\
 
-export const pool = new Pool({ connectionString: process.env["DATABASE_URL"] });
+const {
+  DATABASE_URL,
+  DATABASE_HOST = "db",
+  DATABASE_PORT = "5432",
+  DATABASE_USER = "appuser",
+  DATABASE_PASSWORD = "apppassword",
+  DATABASE_NAME = "appdb",
+} = process.env;
+
+const connectionString =
+  DATABASE_URL ||
+  `postgresql://${encodeURIComponent(DATABASE_USER)}:${encodeURIComponent(
+    DATABASE_PASSWORD
+  )}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}`;
+
+export const pool = new Pool({ connectionString });
 export const database = drizzle(pool);
 
 // Database schema \\

@@ -8,8 +8,8 @@ export class Server {
 
     RegisterRoutes(server);
 
-    server.listen(Number(process.env["PORT"]) || 3003, () =>
-      console.log(`Server started on port ${process.env["PORT"] || 3003}`)
+    server.listen(Number(8082), () =>
+      console.log(`Server started on port 8082`)
     );
   }
 }

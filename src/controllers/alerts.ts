@@ -12,7 +12,7 @@ import {
   Path,
   Delete,
 } from "@tsoa/runtime";
-import type { AlertDto } from "./dtos/alerts.js";
+import type { AlertDto, UpdateAlertDto } from "./dtos/alerts.js";
 
 @Tags("Alerts")
 @Route("alerts")
@@ -48,11 +48,7 @@ export class AlertsController {
   public async update(
     @Path("id") id: string,
     @Body()
-    body: {
-      type?: "EMAIL" | "SMS" | "WEBHOOK";
-      domain?: string;
-      target: string;
-    }
+    body: UpdateAlertDto & { target: string }
   ): Promise<void> {
     const { type, domain, target } = body;
     await alertsService.update({ id: id }, { type, domain }, target);

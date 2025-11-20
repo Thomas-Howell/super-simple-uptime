@@ -1,11 +1,13 @@
 import twilio from "twilio";
 import type { SMSService } from "./monitor.js";
-import { config } from "@src/config.js";
+import { createConfig } from "@src/config.js";
 
 export class TwilioService implements SMSService {
   private twilioClient;
 
   constructor() {
+    const config = createConfig();
+
     if (config.smsEnabled) {
       this.twilioClient = twilio(
         process.env["TWILIO_ACCOUNT_SID"]! as string,

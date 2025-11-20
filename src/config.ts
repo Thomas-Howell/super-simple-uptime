@@ -1,6 +1,7 @@
 export class Config {
   smsEnabled: boolean;
   emailEnabled: boolean;
+  databaseUrl: string;
 
   constructor() {
     if (process.env["SMS_ENABLED"] === "true") {
@@ -25,7 +26,31 @@ export class Config {
         );
       this.emailEnabled = true;
     } else this.emailEnabled = false;
+
+    if (!process.env["DATABASE_URL"]) {
+      if (
+        !process.env["DATABASE_HOST"] ||
+        !process.env["DATABASE_PORT"] ||
+        !process.env["DATABASE_USER"] ||
+        !process.env["DATABASE_PASSWORD"] ||
+        !process.env["DATABASE_NAME"]
+      ) {
+        throw new Error(
+          "Database URL is not set, and individual database connection environment variables are missing."
+        );
+      }
+      const host = process.env["DATABASE_HOST"];
+      const port = process.env["DATABASE_PORT"];
+      const user = process.env["DATABASE_USER"];
+      const password = process.env["DATABASE_PASSWORD"];
+      const dbName = process.env["DATABASE_NAME"];
+      this.databaseUrl = `postgres://${user}:${password}@${host}:${port}/${dbName}`;
+    } else {
+      this.databaseUrl = process.env["DATABASE_URL"]!;
+    }
   }
 }
 
-export const config = new Config();
+export function createConfig() {
+  return new Config();
+}

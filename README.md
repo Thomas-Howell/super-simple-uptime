@@ -52,6 +52,12 @@ Use .env.example.
 
 ## Run
 
+### Build and run in docker
+
+```
+docker compose up --build --force-recreate
+```
+
 ### Start in dev
 
 Start the app
